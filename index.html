@@ -22,15 +22,28 @@
                 read_reset();
                 console.log("Loaded text");
             }
-            function get_chunk() {
-                chunk = parseInt(document.getElementById("chunk").value);
-                console.log("Chunk has been set");
+            function manage_invalid_input(element) {
+                if(
+                    element.rangeUnderflow ||
+                    !element.value ||
+                    parseInt(element.value) < 1
+                    ){
+                        element.value = "1";
+                    }
             }
-            function get_speed(_value) {
-                let value = _value ?? document.getElementById("wpm").value;
+            function get_chunk(manage) {
+                let element = document.getElementById("chunk");
+                if(manage) manage_invalid_input(element);
+                chunk = parseInt(element.value);
+                console.log("Chunk has been set: " + chunk);
+            }
+            function get_speed(_value, manage) {
+                let element = document.getElementById("wpm");
+                if(manage) manage_invalid_input(element);
+                let value = _value ?? element.value;
                 wpm = parseInt(value);
                 speed = 1000 / (wpm / 60);
-                console.log("Speed has been set");
+                console.log("Speed has been set: " + wpm);
             }
             function set_display() {
                 display = document.getElementById("display");
@@ -43,7 +56,7 @@
                     timeout = setInterval(read_handler, speed);
                     running = true;
                 }
-                hide_elements();
+                set_playback();
                 read_handler();
                 console.log("Reading has begun");
             }
@@ -51,7 +64,7 @@
                 clearTimeout(timeout);
                 timeout = null;
                 running = false;
-                show_elements();
+                set_config();
             }
             function read_reset() {
                 index = 0;
@@ -80,20 +93,30 @@
                 }
                 displayed_text = buffer;
             }
-            function hide_elements() {
-                let elements = document.getElementsByClassName("controls");
-                for(let element of elements) {
-                    if(element.type !== "hidden") element.oldtype = element.type;
-                    element.type = "hidden";
-                    element.hidden = true;
-                }
+            function hide(element) {
+                if(element.type !== "hidden") element.oldtype = element.type;
+                element.type = "hidden";
+                element.hidden = true;
             }
-            function show_elements() {
-                let elements = document.getElementsByClassName("controls");
-                for(let element of elements) {
-                    element.type = element.oldtype ?? element.type;
-                    element.hidden = false;
-                }
+            function show(element) {
+                element.type = element.oldtype ?? element.type;
+                element.hidden = false;
+            }
+            function set_config() {
+                let elements = document.getElementsByClassName("config");
+                for(let element of elements)
+                    show(element);
+                elements = document.getElementsByClassName("playback");
+                for(let element of elements)
+                    hide(element)
+            }
+            function set_playback() {
+                let elements = document.getElementsByClassName("config");
+                for(let element of elements)
+                    hide(element);
+                elements = document.getElementsByClassName("playback");
+                for(let element of elements)
+                    show(element);
             }
             function read_handler() {
                 increment_head();
@@ -112,7 +135,6 @@
                 get_speed();
                 load_text();
                 read_pause();
-                display.hidden = false;
             }, 30);
         </script>
     </head>
@@ -145,38 +167,38 @@
     </style>
     <body>
         <br>
-        <input type="button" class="controls" value="Play" onclick="read_start()">
+        <input type="button" class="playback" value="Pause" onclick="read_pause()">
         <br>
-        <input type="button" value="Pause" onclick="read_pause()">
+        <input type="button" class="playback" value="Seek Back" onclick="read_seek(-20)">
+        <input type="button" class="playback" value="Seek Forward" onclick="read_seek(12)">
         <br>
-        <input type="button" value="Seek Back" onclick="read_seek(-20)">
-        <input type="button" value="Seek Forward" onclick="read_seek(12)">
+        <input type="button" class="playback" value="Slow" onclick="change_speed(-130)">
+        <input type="button" class="playback" value="Speed" onclick="change_speed(130)">
         <br>
-        <input type="button" value="Slow" onclick="change_speed(-130)">
-        <input type="button" value="Speed" onclick="change_speed(130)">
+        <input type="button" class="config" value="Play" onclick="read_start()">
         <br>
-        <input type="button" class="controls" value="Reset" onclick="read_reset()">
+        <input type="button" class="config" value="Reset" onclick="read_reset()">
 
         <br> <br>
 
-        <t class="controls">
+        <t class="config">
             Words Per Minute:
         </t>
-        <input type="text" id="wpm" class="controls" value="500" oninput="get_speed()">
+        <input type="number" id="wpm" class="config" value="500" min="1" oninput="get_speed()" onchange="get_speed(null, true)">
         <br>
 
-        <t class="controls">
+        <t class="config">
             Chunk Size:
         </t>
-        <input type="text" id="chunk" class="controls" value="1" oninput="get_chunk()">
+        <input type="number" id="chunk" class="config" value="1" min="1" oninput="get_chunk()" onchange="get_chunk(true)">
 
         <br> <br>
-        <input type="text" id="content" class="controls" value="The Quick Brown Fox Jumps Over The Lazy Dog" onchange="load_text()">
+        <input type="text" id="content" class="config" value="The Quick Brown Fox Jumps Over The Lazy Dog" onchange="load_text()">
         <br>
-        <t class="controls">
+        <t class="config">
             Trail words:
         </t>
-        <input type="checkbox" id="trail" class="controls" onchange="get_trail()">
+        <input type="checkbox" id="trail" class="config" onchange="get_trail()">
         <br>
         <center id="display" style="font-size: 140px;color:black; text-align: center">
             Reeder
