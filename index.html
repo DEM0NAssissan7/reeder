@@ -12,10 +12,12 @@
             let timeout = 0;
             let display;
             let trail = false;
+            let running = false;
             function load_text() {
                 text = document.getElementById("content").value;
                 // Map text
                 mapped_text = text.split(/[\s\n]+/);
+                read_handler();
                 read_reset();
                 console.log("Loaded text");
             }
@@ -25,6 +27,8 @@
             }
             function get_speed() {
                 speed = 1000 / (parseInt(document.getElementById("wpm").value) / 60);
+                read_pause();
+                read_start();
                 console.log("Speed has been set");
             }
             function set_display() {
@@ -34,14 +38,19 @@
                 trail = document.getElementById("trail").checked;
             }
             function read_start() {
-                if(timeout === null)
+                if(!running) {
                     timeout = setInterval(read_handler, speed);
+                    running = true;
+                }
+                hide_elements();
                 read_handler();
                 console.log("Reading has begun");
             }
             function read_pause() {
                 clearTimeout(timeout);
                 timeout = null;
+                running = false;
+                show_elements();
             }
             function read_reset() {
                 index = 0;
@@ -63,6 +72,21 @@
                 }
                 displayed_text = buffer;
             }
+            function hide_elements() {
+                let elements = document.getElementsByClassName("controls");
+                for(let element of elements) {
+                    if(element.type !== "hidden") element.oldtype = element.type;
+                    element.type = "hidden";
+                    element.hidden = true;
+                }
+            }
+            function show_elements() {
+                let elements = document.getElementsByClassName("controls");
+                for(let element of elements) {
+                    element.type = element.oldtype ?? element.type;
+                    element.hidden = false;
+                }
+            }
             function read_handler() {
                 increment_head();
                 display.setHTML(displayed_text);
@@ -76,15 +100,24 @@
 
             // Startup
             setTimeout(() => {
-                load_text();
+                set_display();
                 get_chunk();
                 get_speed();
-                set_display();
+                load_text();
                 read_pause();
-            }, 500);
+            }, 30);
         </script>
+        <center id="display" style="font-size: 140px;color:black; text-align: center;">
+            Reeder
+        </center>
     </head>
     <style>
+        head {
+            background-color: white;
+            margin: auto; 
+            width: 50%;
+            padding: 10px;
+        }
         body {
             background-color: white;
             margin: auto; 
@@ -102,39 +135,33 @@
     </style>
     <body>
         <br>
-        <input type="button" value="Play" onclick="read_start()">
+        <input type="button" class="controls" value="Play" onclick="read_start()">
         <br>
         <input type="button" value="Pause" onclick="read_pause()">
         <br>
-        <input type="button" value="Reset" onclick="read_reset()">
-        <br>
         <input type="button" value="Seek Back" onclick="read_seek(-20)">
+        <br>
+        <input type="button" class="controls" value="Reset" onclick="read_reset()">
 
         <br> <br>
 
-        <t>
+        <t class="controls">
             Words Per Minute:
         <t>
-        <input type="text" id="wpm" value="500" oninput="get_speed()">
+        <input type="text" id="wpm" class="controls" value="500" oninput="get_speed()">
         <br>
 
-        <t>
+        <t class="controls">
             Chunk Size:
         <t>
-        <input type="text" id="chunk" value="1" oninput="get_chunk()">
+        <input type="text" id="chunk" class="controls" value="1" oninput="get_chunk()">
 
-        <br> <br> <br> <br> <br>
-        <t id="display" style="font-size: 140px;color:black; text-align: center; margin: auto; width: fit-content;">
-            Display
-        </t>
+        <br> <br>
+        <input type="text" id="content" class="controls" value="The Quick Brown Fox Jumps Over The Lazy Dog" onchange="load_text()">
         <br>
-
-        <br> <br> <br> <br> <br>
-        <input type="text" id="content" value="The Quick Brown Fox Jumps Over The Lazy Dog" onchange="load_text()">
-        <br>
-        <t>
+        <t class="controls">
             Trail words:
         </t>
-        <input type="checkbox" id="trail" onchange="get_trail()">
+        <input type="checkbox" id="trail" class="controls" onchange="get_trail()">
     </body>
 </html>
