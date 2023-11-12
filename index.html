@@ -45,6 +45,8 @@
             }
             function read_seek(value) {
                 index += value;
+                if(index >= mapped_text.length) index = mapped_text.length - 1
+                if(index < 0) index = 0;
                 read_handler();
             }
             function increment_head() {
