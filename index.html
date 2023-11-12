@@ -86,16 +86,14 @@
             width: 50%;
             padding: 10px;}
         input {font-size: medium;
-            width:auto;
-            height:auto;
+            width:min-content;
+            height:fit-content;
             border-radius:10px;
-            margin: 0;
-            z-index:-1;
-            display:block;
+            display:inline-block;
             text-align:center; 
             position:relative;
         }
-        t {color: black}
+        t {color: black; margin: auto}
     </style>
     <body>
         <br>
@@ -121,7 +119,7 @@
         <input type="text" id="chunk" value="1" oninput="get_chunk()">
 
         <br> <br> <br> <br> <br>
-        <t id="display" style="font-size: 140px;color:black; text-align: center;">
+        <t id="display" style="font-size: 140px;color:black; text-align: center; margin: auto; width: fit-content;">
             Display
         </t>
         <br>
