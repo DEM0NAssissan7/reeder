@@ -11,6 +11,7 @@
             let speed = 0;
             let timeout = 0;
             let display;
+            let trail = false;
             function load_text() {
                 text = document.getElementById("content").value;
                 // Map text
@@ -28,6 +29,9 @@
             }
             function set_display() {
                 display = document.getElementById("display");
+            }
+            function get_trail() {
+                trail = document.getElementById("trail").checked;
             }
             function read_start() {
                 if(timeout === null)
@@ -51,6 +55,7 @@
             }
             function increment_head() {
                 let buffer = "";
+                if(trail && index > 0) buffer += mapped_text[index - 1] + " ";
                 for(let i = 0; i < chunk; i++) {
                     if(index >= mapped_text.length) break;
                     buffer += mapped_text[index] + " ";
@@ -126,5 +131,10 @@
 
         <br> <br> <br> <br> <br>
         <input type="text" id="content" value="The Quick Brown Fox Jumps Over The Lazy Dog" onchange="load_text()">
+        <br>
+        <t>
+            Trail words:
+        </t>
+        <input type="checkbox" id="trail" onchange="get_trail()">
     </body>
 </html>
