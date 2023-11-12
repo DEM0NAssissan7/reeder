@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Reeder</title>
+        <script>
+            let index = 0;
+            let chunk = 0;
+            let text = "";
+            let mapped_text = [];
+            let displayed_text = "";
+            let speed = 0;
+            let timeout = 0;
+            let display;
+            function load_text() {
+                text = document.getElementById("content").value;
+                // Map text
+                mapped_text = text.split(/[\s\n]+/);
+                read_reset();
+                console.log("Loaded text");
+            }
+            function get_chunk() {
+                chunk = parseInt(document.getElementById("chunk").value);
+                console.log("Chunk has been set");
+            }
+            function get_speed() {
+                speed = 1000 / (parseInt(document.getElementById("wpm").value) / 60);
+                console.log("Speed has been set");
+            }
+            function set_display() {
+                display = document.getElementById("display");
+            }
+            function read_start() {
+                if(timeout === null)
+                    timeout = setInterval(read_handler, speed);
+                read_handler();
+                console.log("Reading has begun");
+            }
+            function read_pause() {
+                clearTimeout(timeout);
+                timeout = null;
+            }
+            function read_reset() {
+                index = 0;
+                read_pause();
+            }
+            function read_seek(value) {
+                index += value;
+                read_handler();
+            }
+            function increment_head() {
+                let buffer = "";
+                for(let i = 0; i < chunk; i++) {
+                    if(index >= mapped_text.length) break;
+                    buffer += mapped_text[index] + " ";
+                    index++;
+                }
+                displayed_text = buffer;
+            }
+            function read_handler() {
+                increment_head();
+                display.setHTML(displayed_text);
+                console.log(displayed_text);
+                if(index >= mapped_text.length) {
+                    read_reset();
+                    console.log("Reading finished")
+                    return;
+                }
+            }
+
+            // Startup
+            setTimeout(() => {
+                load_text();
+                get_chunk();
+                get_speed();
+                set_display();
+                read_pause();
+            }, 500);
+        </script>
+    </head>
+    <style>
+        body {background-color: white; align-self: center;}
+        input {font-size: medium;}
+        t  {color: black}
+    </style>
+    <body>
+        <br>
+        <input type="button" value="Play" onclick="read_start()">
+        <br>
+        <input type="button" value="Pause" onclick="read_pause()">
+        <br>
+        <input type="button" value="Reset" onclick="read_reset()">
+        <br>
+        <input type="button" value="Seek Back" onclick="read_seek(-20)">
+
+        <br> <br>
+
+        <t>
+            Words Per Minute:
+        <t>
+        <input type="text" id="wpm" value="500" oninput="get_speed()">
+        <br>
+
+        <t>
+            Chunk Size:
+        <t>
+        <input type="text" id="chunk" value="1" oninput="get_chunk()">
+
+        <br> <br>
+        <t id="display" style="font-size: 90px;color:black">
+            Display
+        </t>
+        <br>
+
+        <br>
+        <input type="text" id="content" value="The Quick Brown Fox Jumps Over The Lazy Dog" onchange="load_text()">
+    </body>
+</html>
