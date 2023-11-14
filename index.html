@@ -3,6 +3,8 @@
     <head>
         <title>Reeder</title>
         <script>
+            const avg_word_length = 4.7;
+
             let index = 0;
             let chunk = 0;
             let text = "";
@@ -14,6 +16,7 @@
             let display;
             let trail = false;
             let running = false;
+            let length_flag = true;
             function load_text() {
                 text = document.getElementById("content").value;
                 // Map text
@@ -49,19 +52,33 @@
                 }
                 console.log("Speed has been set: " + wpm);
             }
+            function get_speed_flag() {
+                length_flag = document.getElementById("lengthdepend").checked;
+            }
             function set_display() {
                 display = document.getElementById("display");
             }
             function get_trail() {
                 trail = document.getElementById("trail").checked;
             }
+            function label_play() {
+                let element = document.getElementById("play-pause");
+                element.value = "Play";
+                element.onclick=read_start;
+            }
+            function label_pause() {
+                let element = document.getElementById("play-pause");
+                element.value = "Pause";
+                element.onclick=read_pause;
+            }
             function read_start() {
                 if(!running) {
-                    timeout = setInterval(read_handler, speed);
+                    read_handler();
                     running = true;
                 }
                 set_playback();
                 read_handler();
+                label_pause();
                 console.log("Reading has begun");
             }
             function read_pause() {
@@ -69,6 +86,7 @@
                 timeout = null;
                 running = false;
                 set_config();
+                label_play();
             }
             function read_reset() {
                 index = 0;
@@ -84,17 +102,20 @@
                 console.log(wpm+value);
                 if(wpm + value < 0) return;
                 get_speed(wpm + value);
-                read_pause();
-                read_start();
             }
+
+            let word_length = 0;
             function increment_head() {
                 let buffer = "";
+                word_length = 0;
                 if(trail && index > 0) buffer += mapped_text[index - 1] + " ";
                 for(let i = 0; i < chunk; i++) {
                     if(index >= mapped_text.length) break;
                     buffer += mapped_text[index] + " ";
+                    word_length += mapped_text[index].length;
                     index++;
                 }
+                word_length = word_length / 4.7;
                 displayed_text = buffer;
             }
             function hide(element) {
@@ -129,6 +150,12 @@
                     read_reset();
                     console.log("Reading finished")
                     return;
+                }
+                if(running) {
+                    if(length_flag)
+                        timeout = setTimeout(read_handler, speed * word_length);
+                    else
+                        timeout = setTimeout(read_handler, speed);
                 }
             }
 
@@ -176,12 +203,14 @@
     </style>
     <body>
         <br>
-        <input type="button" class="playback" value="Pause" onclick="read_pause()">
+        <input type="button" id="play-pause" value="Play" onclick="read_start()">
         <br>
         <input type="button" class="playback" value="Seek Back" onclick="read_seek(-20)">
         <input type="button" class="playback" value="Seek Forward" onclick="read_seek(12)">
         <br>
+        <input type="button" class="config" value="Reset" onclick="read_reset()">
 
+        <br>
         <t>
             Words Per Minute:
         </t>
@@ -193,11 +222,15 @@
         </t>
         <input type="number" id="chunk" class="config" value="1" min="1" oninput="get_chunk()" onchange="get_chunk(true)">
         <br>
-
-        <input type="button" class="config" value="Play" onclick="read_start()">
+        <t class="config">
+            Length-dependent speed:
+        </t>
+        <input type="checkbox" id="lengthdepend" class="config" onchange="get_speed_flag()" checked="true">
         <br>
-        <input type="button" class="config" value="Reset" onclick="read_reset()">
-
+        <t class="config">
+            Trail words:
+        </t>
+        <input type="checkbox" id="trail" class="config" onchange="get_trail()">
         <br>
         <br>
 
@@ -220,11 +253,6 @@
 
             PS: I'm coming for you, spreeder.
         </textarea>
-        <br>
-        <t class="config">
-            Trail words:
-        </t>
-        <input type="checkbox" id="trail" class="config" onchange="get_trail()">
         <br>
         <center id="display" style="font-size: 140px;color:black; text-align: center">
             Reeder
