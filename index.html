@@ -3,7 +3,8 @@
     <head>
         <title>Reeder</title>
         <script>
-            const avg_word_length = 4.7;
+            let avg_word_length = 4.7;
+            let length_dampening = 3.1;
 
             let index = 0;
             let chunk = 0;
@@ -21,6 +22,12 @@
                 text = document.getElementById("content").value;
                 // Map text
                 mapped_text = text.split(/[\s\n]+/);
+
+                // Get average word length
+                avg_word_length = 0;
+                for(let i = 0; i < mapped_text.length; i++)
+                    avg_word_length += mapped_text[i].length
+                avg_word_length /= mapped_text.length;
                 read_handler();
                 read_reset();
                 console.log("Loaded text");
@@ -96,7 +103,6 @@
                 index += value;
                 if(index >= mapped_text.length) index = mapped_text.length - 1
                 if(index < 0) index = 0;
-                read_handler();
             }
             function change_speed(value) {
                 console.log(wpm+value);
@@ -115,7 +121,6 @@
                     word_length += mapped_text[index].length;
                     index++;
                 }
-                word_length = word_length / 4.7;
                 displayed_text = buffer;
             }
             function hide(element) {
@@ -153,7 +158,7 @@
                 }
                 if(running) {
                     if(length_flag)
-                        timeout = setTimeout(read_handler, speed * word_length);
+                        timeout = setTimeout(read_handler, speed * Math.max(((word_length / avg_word_length) + length_dampening - 1) / length_dampening, 1)); //Dampening algorithm (based on average)
                     else
                         timeout = setTimeout(read_handler, speed);
                 }
